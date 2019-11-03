@@ -2,24 +2,23 @@
 
 const express = require("express");
 const router = express.Router();
-const product = require("../models/product");
+
+const Product = require("../models/product");
 
 router.post("/product/create", async (req, res) => {
   try {
-    const newProduct = new product(
-      {
-        title: req.body.title,
-        description: req.body.description,
-        price: req.body.price,
-        category: req.body.category
-      } // or id
-    );
+    const newProduct = new Product({
+      title: req.body.title,
+      description: req.body.description,
+      price: req.body.price,
+      category: req.body.category
+    });
     await newProduct.save();
     res.json({ message: "New product created" });
   } catch (error) {
     res.status(400).json({
       error: {
-        message: "Product create : Bad request"
+        message: error.message
       }
     });
   }
@@ -27,69 +26,74 @@ router.post("/product/create", async (req, res) => {
 
 router.get("/product", async (req, res) => {
   try {
-    const products = await product.find();
+    const products = await Product.find();
     res.send(products);
-    res.json({ message: "Products read OK" });
   } catch (error) {
     res.status(400).json({
-      error: {
-        message: "Products read: Bad request"
-      }
+      error: error.message
     });
   }
 });
 
-router.put("/product/update", async (req, res) => {
-  const id = req.query.id;
-  const title = req.body.title;
-  const description = req.body.description;
-  const price = req.body.price;
-  const category = req.body.category;
-
+// POSTMAN POST: http://localhost:3000/product/update?id=5dbda719b7ac6006c9a2acbe
+router.post("/product/update", async (req, res) => {
   try {
-    const product = await product.findOne({ _id: id });
-    if (product !== null) {
-      product.title = title;
-      product.description = description;
-      product.price = price;
-      product.category = category;
+    const id = req.query.id;
+    const title = req.body.title;
+    const description = req.body.description;
+    const price = req.body.price;
+    const category = req.body.category;
+
+    const product = await Product.findOne({ _id: id });
+    if (product) {
+      if (title) {
+        product.title = title;
+      }
+      if (description) {
+        product.description = description;
+      }
+      if (price) {
+        product.price = price;
+      }
+      if (category) {
+        product.category = category;
+      }
       await product.save();
       res.json({ message: "Product model updated" });
     } else {
       return res.status(400).send({
         error: {
-          message: "Product id not found"
+          message: "Product not found"
         }
       });
     }
   } catch (error) {
     res.status(400).json({
-      error: {
-        message: "Update: Bad request"
-      }
+      error: error.message
     });
   }
 });
 
-router.post("/product/delete", async (req, res) => {
-  const id = req.query.id;
+// POSTMAN DELETE: http://localhost:3000/product/delete?id=5dbecb365879af049faec8a4
+router.delete("/product/delete", async (req, res) => {
   try {
-    const product = await product.findOne({ _id: id });
+    const id = req.query.id;
+    const product = await Product.findOne({ _id: id });
 
-    if (product !== null) {
+    if (product) {
       await product.remove();
       res.json({ message: "Product removed" });
     } else {
       return res.status(400).send({
         error: {
-          message: "Product id not found"
+          message: "Product not found"
         }
       });
     }
   } catch (error) {
     res.status(400).json({
       error: {
-        message: "Product delete: Bad request"
+        message: error.message
       }
     });
   }

@@ -9,7 +9,7 @@ const Product = require("./../models/product");
 router.post("/department/create", async (req, res) => {
   try {
     if (req.body.title) {
-      const newDepartment = new department({
+      const newDepartment = new Department({
         title: req.body.title
       });
       await newDepartment.save();
@@ -20,7 +20,7 @@ router.post("/department/create", async (req, res) => {
   } catch (error) {
     res.status(400).json({
       error: {
-        message: "Department create : Bad request"
+        message: error.message
       }
     });
   }
@@ -42,27 +42,25 @@ router.get("/department", async (req, res) => {
 
 // POSTMAN POST: http://localhost:3000/department/update?id=5dbda719b7ac6006c9a2acbe
 router.put("/department/update", async (req, res) => {
-  const id = req.query.id;
-  const title = req.body.title;
   try {
-    const department = await department.findOne({ _id: id });
+    const id = req.query.id;
+    const title = req.body.title;
+    const department = await Department.findOne({ _id: id });
 
-    if (department !== null) {
+    if (department && title) {
       department.title = title;
       await department.save();
       res.json({ message: "Updated" });
     } else {
       return res.status(400).send({
         error: {
-          message: "Department id not found"
+          message: "Department not found"
         }
       });
     }
   } catch (error) {
     res.status(400).json({
-      error: {
-        message: "Department update : Bad request"
-      }
+      error: error.message
     });
   }
 });
@@ -71,52 +69,43 @@ router.put("/department/update", async (req, res) => {
 router.delete("/department/delete", async (req, res) => {
   try {
     const id = req.query.id;
-    if (id) {
-      // console.log(id);
+    const department = await Department.findById(id);
 
-      const department = await Dategory.findById(id);
+    if (department) {
+      // Delete Categories
+      const categoryList = await Category.find();
+      for (let i = 0; i < categoryList.length; i++) {
+        if (categoryList[i].department == id) {
+          // Remove products
+          const productList = await Product.find();
 
-      if (department !== null) {
-        //console.log(Product.length);
-
-        // Delete Categories
-        const categoryList = await Category.findOne();
-
-        // Delete Products
-        const productList = await Product.find();
-        //res.send(productList);
-        //console.log(productList);
-
-        // Remove product
-        for (let i = 0; i < productList.length; i++) {
-          console.log(id);
-          console.log(productList[i].category);
-
-          if (productList[i].category == id) {
-            //   console.log(productList[i]._id);
-            //   //res.send(productList[i]);
-
-            await productList[i].remove();
-            console.log("Product removed");
-            //res.send({ message: "Product removed" });
-          } else {
-            console.log("Not equal");
+          for (let j = 0; j < productList.length; j++) {
+            if (productList[j].category.equals(categoryList[i]._id)) {
+              // console.log(productList[i]._id);
+              // console.log(productList[j].title);
+              await productList[j].remove();
+              console.log("Product removed" + j);
+            }
           }
+
+          // Remove category
+          await categoryList[i].remove();
+          console.log(categoryList[i].title);
+          console.log("Category removed " + i);
         }
-
-        // Remove category
-        await categoryCur.remove();
-        console.log("Category removed");
-        res.json({ message: "Category removed" });
-      } else {
-        return res.status(400).send({
-          error: {
-            message: "Category id not found"
-          }
-        });
       }
+
+      // Remove department
+      await department.remove();
+      console.log(department.title);
+      console.log("Department removed");
+      res.json({ message: "Department removed" });
     } else {
-      res.status(400).json({ error: "Wrong parameter" });
+      return res.status(400).send({
+        error: {
+          message: "Department id not found"
+        }
+      });
     }
   } catch (error) {
     res.status(400).json({

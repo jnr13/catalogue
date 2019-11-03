@@ -52,9 +52,15 @@ router.post("/category/update", async (req, res) => {
     const categoryCurrent = await category.findOne({ _id: id });
 
     if (categoryCurrent !== null) {
-      categoryCurrent.title = title;
-      categoryCurrent.description = description;
-      categoryCurrent.department = department;
+      if (title) {
+        categoryCurrent.title = title;
+      }
+      if (description) {
+        categoryCurrent.description = description;
+      }
+      if (department) {
+        categoryCurrent.department = department;
+      }
       await categoryCurrent.save();
       res.json({ message: "Category model updated" });
     } else {
