@@ -5,7 +5,7 @@ const express = require("express");
 const router = express.Router();
 const department = require("./../models/department");
 const category = require("./../models/category");
-const product = require("./../models/product");
+const Product = require("./../models/product");
 
 router.post("/category/create", async (req, res) => {
   try {
@@ -78,26 +78,37 @@ router.delete("/category/delete", async (req, res) => {
   try {
     const id = req.query.id;
     if (id) {
-      console.log(id);
+      // console.log(id);
 
-      const categoryCur = await category.findById({ id });
-      console.log("After" + id);
+      const categoryCur = await category.findById(id);
 
       if (categoryCur !== null) {
-        // Remove products under/with same id than category
-        console.log("CATEGORY");
-        res.send(categoryCur);
+        //console.log(Product.length);
 
-        //if (product.category === id) {
-        const productCur = await product.findOne({ _id: id });
-        if (productCur !== null) {
-          console.log("PRODUCTS in the category : " + product);
-          res.send(productCur);
+        const productList = await Product.find();
+        //res.send(productList);
+        //console.log(productList);
+
+        // Remove product
+        for (let i = 0; i < productList.length; i++) {
+          console.log(id);
+          console.log(productList[i].category);
+
+          if (productList[i].category == id) {
+            //   console.log(productList[i]._id);
+            //   //res.send(productList[i]);
+
+            await productList[i].remove();
+            console.log("Product removed");
+            //res.send({ message: "Product removed" });
+          } else {
+            console.log("Not equal");
+          }
         }
-        //}
 
-        // Remove categorie
-        // await category.remove();
+        // Remove category
+        await categoryCur.remove();
+        console.log("Category removed");
         res.json({ message: "Category removed" });
       } else {
         return res.status(400).send({

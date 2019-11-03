@@ -2,15 +2,21 @@
 
 const express = require("express");
 const router = express.Router();
-const department = require("../models/department");
+const Department = require("./../models/department");
+const Category = require("./../models/category");
+const Product = require("./../models/product");
 
 router.post("/department/create", async (req, res) => {
   try {
-    const newDepartment = new department({
-      title: req.body.title
-    });
-    await newDepartment.save();
-    res.json({ message: "New department created" });
+    if (req.body.title) {
+      const newDepartment = new department({
+        title: req.body.title
+      });
+      await newDepartment.save();
+      res.json({ message: "New department created" });
+    } else {
+      res.send(400).send({ error: error.message });
+    }
   } catch (error) {
     res.status(400).json({
       error: {
@@ -22,7 +28,7 @@ router.post("/department/create", async (req, res) => {
 
 router.get("/department", async (req, res) => {
   try {
-    const departments = await department.find();
+    const departments = await Department.find();
     res.send(departments);
     res.json({ message: "Department read Ok" });
   } catch (error) {
@@ -34,11 +40,7 @@ router.get("/department", async (req, res) => {
   }
 });
 
-// http://localhost:3000/department/update
-// http://localhost:3000?id=
-// http://localhost:3000/title
-//   si envoi par param "/departement/update/:title" => req.params.title
-//   si on recupere du body (par express body parser) => req.body.title
+// POSTMAN POST: http://localhost:3000/department/update?id=5dbda719b7ac6006c9a2acbe
 router.put("/department/update", async (req, res) => {
   const id = req.query.id;
   const title = req.body.title;
@@ -65,20 +67,60 @@ router.put("/department/update", async (req, res) => {
   }
 });
 
-router.post("/department/delete", async (req, res) => {
-  const id = req.query.id;
+// POSTMAN DELETE: http://localhost:3000/category/delete?id=5dbecb365879af049faec8a4
+router.delete("/department/delete", async (req, res) => {
   try {
-    const department = await department.findOne({ _id: id });
+    const id = req.query.id;
+    if (id) {
+      // console.log(id);
 
-    if (department !== null) {
-      await department.remove();
-      res.json({ message: "Removed" });
+      const department = await Dategory.findById(id);
+
+      if (department !== null) {
+        //console.log(Product.length);
+
+        // Delete Categories
+        const categoryList = await Category.findOne();
+
+        // Delete Products
+        const productList = await Product.find();
+        //res.send(productList);
+        //console.log(productList);
+
+        // Remove product
+        for (let i = 0; i < productList.length; i++) {
+          console.log(id);
+          console.log(productList[i].category);
+
+          if (productList[i].category == id) {
+            //   console.log(productList[i]._id);
+            //   //res.send(productList[i]);
+
+            await productList[i].remove();
+            console.log("Product removed");
+            //res.send({ message: "Product removed" });
+          } else {
+            console.log("Not equal");
+          }
+        }
+
+        // Remove category
+        await categoryCur.remove();
+        console.log("Category removed");
+        res.json({ message: "Category removed" });
+      } else {
+        return res.status(400).send({
+          error: {
+            message: "Category id not found"
+          }
+        });
+      }
+    } else {
+      res.status(400).json({ error: "Wrong parameter" });
     }
   } catch (error) {
     res.status(400).json({
-      error: {
-        message: "Department remove : Bad request"
-      }
+      error: error.message
     });
   }
 });
