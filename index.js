@@ -11,6 +11,12 @@ app.use(crudDepartment);
 app.use(crudCategory);
 app.use(crudProduct);
 
-app.listen(3000, () => {
+// use heroku var env file for perso heroku PORT
+// se comporte comme un if var env PORT exists: (process.env.PORT) ? process.env.PORT : 3000
+app.listen(process.env.PORT || 3000, () => {
   console.log("Server started");
 });
+
+// app.listen(3000, () => {
+//   console.log("Server started");
+// });

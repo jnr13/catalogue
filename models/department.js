@@ -4,9 +4,13 @@ const mongoose = require("mongoose");
 const app = express();
 app.use(bodyParser.json());
 
-mongoose.connect("mongodb://localhost/catalogue-app", {
-  useNewUrlParser: true
-});
+mongoose.connect(
+  process.env.MONGODB_URI || "mongodb://localhost/catalogue-app",
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true // enlever ligne warning deprecated etc
+  }
+);
 
 const Department = mongoose.model("Department", {
   title: String

@@ -4,9 +4,12 @@ const mongoose = require("mongoose");
 const app = express();
 app.use(bodyParser.json());
 
-mongoose.connect("mongodb://localhost/catalogue-app", {
-  useNewUrlParser: true
-});
+mongoose.connect(
+  process.env.MONGODB_URI || "mongodb://localhost/catalogue-app",
+  {
+    useNewUrlParser: true
+  }
+);
 
 const Category = mongoose.model("Category", {
   title: {
