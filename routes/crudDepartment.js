@@ -65,7 +65,7 @@ router.put("/department/update", async (req, res) => {
   }
 });
 
-// POSTMAN DELETE: http://localhost:3000/category/delete?id=5dbecb365879af049faec8a4
+// POSTMAN DELETE: http://localhost:3000/department/delete?id=5dbecb365879af049faec8a4
 router.delete("/department/delete", async (req, res) => {
   try {
     const id = req.query.id;
